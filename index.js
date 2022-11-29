@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const cron = require('node-cron');
 
 require('dotenv').config();
 
@@ -23,6 +24,12 @@ app.use(express.json());
 
 const usersRouter = require('./src/routes/Users');
 app.use('/api/users', usersRouter);
+
+
+const SendBirthday = require('./src/services/SendBirthday');
+cron.schedule('* * * * *', async () => {
+    await SendBirthday();
+})
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

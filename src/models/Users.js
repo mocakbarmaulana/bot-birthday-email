@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+    },
     firstName: {
         type: String,
         required: true,
@@ -24,5 +29,9 @@ const UserSchema = new mongoose.Schema({
 }, {
     timestamps: true,
 });
+
+UserSchema.virtual('name').get(function () {
+    return `${this.firstName} ${this.lastName}`;
+})
 
 module.exports = mongoose.model('User', UserSchema);
