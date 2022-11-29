@@ -8,7 +8,7 @@ const SendMail = require('./SendMail');
 async function SendBirthday() {
 
     // create logger for birthday send
-    const logger = createLogger({
+    const logger = await createLogger({
         level: 'info',
         format: format.combine(
             format.timestamp({
@@ -17,7 +17,7 @@ async function SendBirthday() {
             format.json()
         ),
         transports: [
-            new transports.File({ filename: '/src/logs/birthday-' + moment().format('YYYY-MM-DD') + '.log' })
+            new transports.File({ filename: `src/logs/birthday-${moment().format('YYYY-MM-DD')}.log` })
         ]
     });
 
@@ -61,7 +61,6 @@ async function SendBirthday() {
 
     }
 
-    return true
 }
 
 module.exports = SendBirthday;

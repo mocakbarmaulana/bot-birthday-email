@@ -29,7 +29,7 @@ app.use('/api/users', usersRouter);
 const SendBirthday = require('./src/services/SendBirthday');
 cron.schedule('* * * * *', async () => {
     await SendBirthday();
-})
+});
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
