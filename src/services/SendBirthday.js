@@ -1,9 +1,25 @@
+const { createLogger, format, transports } = require('winston')
 const moment = require('moment');
 const Users = require('../models/Users');
 const BirthdaySend = require('../models/BirthdaySend');
 const SendMail = require('./SendMail');
 
+
 async function SendBirthday() {
+
+    // create logger for birthday send
+    const logger = createLogger({
+        level: 'info',
+        format: format.combine(
+            format.timestamp({
+                format: 'YYYY-MM-DD HH:mm:ss'
+            }),
+            format.json()
+        ),
+        transports: [
+            new transports.File({ filename: '/src/logs/birthday-' + moment().format('YYYY-MM-DD') + '.log' })
+        ]
+    });
 
     let users = await Users.find();
 
@@ -17,6 +33,8 @@ async function SendBirthday() {
             if (result) {
                 await BirthdaySend.findOneAndUpdate({ user: user._id }, { sent: true });
                 console.log('Birthday message sent to ' + user.name + ' But it was late');
+
+                logger.info('Birthday message sent to ' + user.name + ' But it was late');
             }
         }
     }
@@ -37,6 +55,8 @@ async function SendBirthday() {
             await birthdaySend.save();
 
             console.log('Birthday message sent to ' + user.name + ` ${result.accepted.length > 0 ? 'on time' : 'but it was not sent'}`);
+
+            logger.info(`Birthday message sent to ${user.name} ${result.accepted.length > 0 ? 'on time' : 'but it was not sent'}`);
         }
 
     }
