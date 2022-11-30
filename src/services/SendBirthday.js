@@ -3,11 +3,10 @@ const moment = require('moment');
 const Users = require('../models/Users');
 const BirthdaySend = require('../models/BirthdaySend');
 const SendMail = require('./SendMail');
+const { sendEmail } = require('../api')
 
 
 async function SendBirthday() {
-
-    // create logger for birthday send
     const logger = await createLogger({
         level: 'info',
         format: format.combine(
@@ -28,13 +27,21 @@ async function SendBirthday() {
     if (failedSend.length > 0) {
         const usersFailed = users.filter(user => failedSend.some(failed => failed.user.toString() === user._id.toString()));
         for (const user of usersFailed) {
-            const result = await SendMail(user.email, 'Happy Birthday', `Hey, Happy Birthday ${user.name}, sorry for the late message`);
+            const message = `Hey, Happy Birthday ${user.name}!, I hope you have a great day!. I'm sorry I couldn't send you a birthday message yesterday, but I'm sending it today!`;
+
+            const response = await sendEmail({ email: user.email, message });
+
+            if (response.status === 200) {
+                logger.info(`API: Birthday message sent to ${user.email} successfully`);
+            } else {
+                logger.error(`API: Birthday message failed to send to ${user.email}`);
+            }
+
+            const result = await SendMail(user.email, 'Happy Birthday', message);
 
             if (result) {
-                await BirthdaySend.findOneAndUpdate({ user: user._id }, { sent: true });
-                console.log('Birthday message sent to ' + user.name + ' But it was late');
-
-                logger.info('Birthday message sent to ' + user.name + ' But it was late');
+                await BirthdaySend.findOneAndUpdate({ user: user._id }, { sent: true, message: message });
+                logger.info(`Birthday message sent to ${user.email} successfully but failed yesterday`);
             }
         }
     }
@@ -43,18 +50,25 @@ async function SendBirthday() {
 
     if (users.length > 0) {
         for (const user of users) {
-            const result = await SendMail(user.email, 'Happy Birthday', `Hey, ${user.name} it’s your birthday`)
+            const message = `Hey, ${user.name} it's your birthday`;
+
+            const response = await sendEmail({ email: user.email, message: message });
+
+            if (response.status === 200) {
+                logger.info(`API: Birthday message sent to ${user.email} successfully`);
+            } else {
+                logger.error(`API: Birthday message failed to send to ${user.email}`);
+            }
+
+            const result = await SendMail(user.email, 'Happy Birthday', message);
 
             const birthdaySend = new BirthdaySend({
                 user: user._id,
                 birthday: user.birthday,
-                message: `Hey, ${user.name} it’s your birthday`,
+                message: message,
                 sent: result.accepted.length > 0,
             })
-
             await birthdaySend.save();
-
-            console.log('Birthday message sent to ' + user.name + ` ${result.accepted.length > 0 ? 'on time' : 'but it was not sent'}`);
 
             logger.info(`Birthday message sent to ${user.name} ${result.accepted.length > 0 ? 'on time' : 'but it was not sent'}`);
         }

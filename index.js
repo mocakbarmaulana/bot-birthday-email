@@ -5,7 +5,7 @@ const cron = require('node-cron');
 
 require('dotenv').config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 
 const app = express();
@@ -22,13 +22,19 @@ db.once('open', () => console.log('Connected to Database'));
 app.use(cors());
 app.use(express.json());
 
+app.get('/', (req, res) => {
+    res.send('Hello World!');
+})
+
 const usersRouter = require('./src/routes/Users');
 app.use('/api/users', usersRouter);
 
 
 const SendBirthday = require('./src/services/SendBirthday');
-cron.schedule('* * * * *', async () => {
+
+cron.schedule('* 9 * * *', async () => {
     await SendBirthday();
+    console.log("Running task every 9 AM");
 });
 
 app.listen(PORT, () => {
