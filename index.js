@@ -19,6 +19,8 @@ const db = mongoose.connection;
 db.on('error', (error) => console.error(error));
 db.once('open', () => console.log('Connected to Database'));
 
+app.set('views', './src/views');
+app.set('view engine', 'ejs');
 app.use(cors());
 app.use(express.json());
 
@@ -26,10 +28,12 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 })
 
+const {viewSendBirthday} = require("./src/controllers/BirthdaySendController");
+app.get('/send-birthday', viewSendBirthday)
+
 const usersRouter = require('./src/routes/Users');
+
 app.use('/api/users', usersRouter);
-
-
 const SendBirthday = require('./src/services/SendBirthday');
 
 cron.schedule('* 9 * * *', async () => {
